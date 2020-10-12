@@ -35,12 +35,12 @@ const CartProvider: React.FC = ({ children }) => {
       );
 
       if (storagedProducts) {
-        setProducts(JSON.parse(storagedProducts));
+        setProducts([...JSON.parse(storagedProducts)]);
       }
     }
 
     loadProducts();
-  }, []);
+  }, [products]);
 
   const addToCart = useCallback(
     async product => {
@@ -54,17 +54,17 @@ const CartProvider: React.FC = ({ children }) => {
         setProducts(
           products.map(cartProduct =>
             cartProduct === existentProductOnCart
-              ? { ...cartProduct, quantity: cartProduct.quantity + 1 }
+              ? { ...newProduct, quantity: cartProduct.quantity + 1 }
               : cartProduct,
           ),
         );
       } else {
         setProducts([...products, { ...newProduct, quantity: 1 }]);
-        await AsyncStorage.setItem(
-          '@GoMarketplace: products',
-          JSON.stringify(products),
-        );
       }
+      await AsyncStorage.setItem(
+        '@GoMarketplace: products',
+        JSON.stringify(products),
+      );
     },
     [products],
   );
@@ -76,12 +76,16 @@ const CartProvider: React.FC = ({ children }) => {
       );
 
       if (existentProductOnCart) {
-        setProducts(
-          products.map(cartProduct =>
-            cartProduct === existentProductOnCart
-              ? { ...cartProduct, quantity: cartProduct.quantity + 1 }
-              : cartProduct,
-          ),
+        const newProducts = products.map(cartProduct =>
+          cartProduct === existentProductOnCart
+            ? { ...cartProduct, quantity: cartProduct.quantity + 1 }
+            : cartProduct,
+        );
+        setProducts(newProducts);
+
+        await AsyncStorage.setItem(
+          '@GoMarketplace: products',
+          JSON.stringify(newProducts),
         );
       }
     },
@@ -101,13 +105,20 @@ const CartProvider: React.FC = ({ children }) => {
           );
 
           setProducts(cartWithoutTheProduct);
+          await AsyncStorage.setItem(
+            '@GoMarketplace: products',
+            JSON.stringify(cartWithoutTheProduct),
+          );
         } else {
-          setProducts(
-            products.map(cartProduct =>
-              cartProduct === existentProductOnCart
-                ? { ...cartProduct, quantity: cartProduct.quantity - 1 }
-                : cartProduct,
-            ),
+          const newProducts = products.map(cartProduct =>
+            cartProduct === existentProductOnCart
+              ? { ...cartProduct, quantity: cartProduct.quantity - 1 }
+              : cartProduct,
+          );
+          setProducts(newProducts);
+          await AsyncStorage.setItem(
+            '@GoMarketplace: products',
+            JSON.stringify(newProducts),
           );
         }
       }
